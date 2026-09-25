@@ -1,0 +1,10 @@
+[project]
+name = "music-api"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi[standard]>=0.141.1",
+    "scalar-fastapi>=1.9.1",
+]
