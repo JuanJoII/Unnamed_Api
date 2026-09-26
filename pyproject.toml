@@ -5,8 +5,12 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "alembic>=1.20.0",
     "fastapi[standard]>=0.141.1",
+    "psycopg2>=2.9.13",
+    "python-dotenv>=1.2.3",
     "scalar-fastapi>=1.9.1",
+    "sqlalchemy>=2.0.54",
 ]
 [tool.fastapi]
 entrypoint = "src.main:app"
