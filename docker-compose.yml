@@ -1,0 +1,36 @@
+services:
+  api:
+    build: .
+    container_name: fastapi_app
+    ports:
+      - "8000:8000"
+    environment:
+      # El host es 'db' (el nombre del servicio de abajo)
+      - DATABASE_URL=postgresql://usuario:contraseña_segura@db:5432/music_app_db
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/app # Sincroniza tu código local con el contenedor para desarrollo
+      - /app/.venv # Asegúrate de que tu entorno virtual esté en este directorio
+
+  db:
+    image: postgres:16-alpine
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: usuario
+      POSTGRES_PASSWORD: contraseña_segura
+      POSTGRES_DB: music_app_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U usuario -d music_app_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
