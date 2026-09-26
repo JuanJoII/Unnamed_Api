@@ -1,5 +1,7 @@
 from logging.config import fileConfig
 
+from pathlib import Path
+import sys
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
@@ -23,6 +25,10 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+SRC_DIR = PROJECT_ROOT / "src"
+sys.path.insert(0, str(SRC_DIR))
 
 from src.db.db_conn import Base
 from src.db.schemas import User
