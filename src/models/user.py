@@ -14,6 +14,13 @@ class UserCreate(BaseModel):
     class Config:
         from_attributes = True
 
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+    class Config:
+        from_attributes = True
+
 
 class UserRead(BaseModel):
     id: UUID4
