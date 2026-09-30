@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
-from src.db.schemas import User
-from src.models.user import UserCreate, UserRead
-from src.core.settings import phasher
+from db.db_models import User
+from src.schemas.user import UserCreate, UserRead
+from src.core.config import phasher
 import uuid
 
 
@@ -12,9 +12,7 @@ class UserServices:
     def create_user(self, api_user: UserCreate) -> User:
         hashed_password = phasher.hash(api_user.password)
         db_user = User(
-            email=api_user.email,
-            password=hashed_password,
-            username=api_user.username
+            email=api_user.email, password=hashed_password, username=api_user.username
         )
         self.db.add(db_user)
         self.db.commit()
@@ -31,7 +29,7 @@ class UserServices:
             return UserRead.model_validate(user)
         return None
 
-    def login_user(self, email:str, password: str) -> str | None:
+    def login_user(self, email: str, password: str) -> str | None:
         db_user = self.db.query(User).filter(User.email == email).first()
 
         if db_user and phasher.verify(db_user.password, password):

@@ -9,7 +9,10 @@ dependencies = [
     "argon2-cffi>=25.1.0",
     "fastapi[standard]>=0.141.1",
     "psycopg2>=2.9.13",
+    "pwdlib[argon2]>=0.3.1",
+    "pyjwt>=2.15.1",
     "python-dotenv>=1.2.3",
+    "python-multipart>=0.0.32",
     "scalar-fastapi>=1.9.1",
     "sqlalchemy>=2.0.54",
 ]
