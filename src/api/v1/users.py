@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from src.core.dependencies import DBSession
 from src.db.db_conn import get_db
 from src.services.user_service import UserServices
 from src.schemas.user import UserCreate, UserRead, UserLogin
@@ -7,7 +7,7 @@ from src.schemas.user import UserCreate, UserRead, UserLogin
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-def get_user_service(db: Session = Depends(get_db)) -> UserServices:
+def get_user_service(db: DBSession) -> UserServices:
     return UserServices(db)
 
 

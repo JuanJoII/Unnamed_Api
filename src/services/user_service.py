@@ -1,18 +1,20 @@
-from sqlalchemy.orm import Session
 from db.db_models import User
+from src.core.dependencies import DBSession
 from src.schemas.user import UserCreate, UserRead
-from src.core.config import phasher
+from src.core.security import hash_password, verify_password
 import uuid
 
 
 class UserServices:
-    def __init__(self, db: Session):
+    def __init__(self, db: DBSession):
         self.db = db
 
     def create_user(self, api_user: UserCreate) -> User:
-        hashed_password = phasher.hash(api_user.password)
+        hashed_password = hash_password(api_user.password)
         db_user = User(
-            email=api_user.email, password=hashed_password, username=api_user.username
+            email=api_user.email,
+            password_hash=hashed_password,
+            username=api_user.username,
         )
         self.db.add(db_user)
         self.db.commit()
@@ -32,7 +34,7 @@ class UserServices:
     def login_user(self, email: str, password: str) -> str | None:
         db_user = self.db.query(User).filter(User.email == email).first()
 
-        if db_user and phasher.verify(db_user.password, password):
+        if db_user and verify_password(db_user.password_hash, password):
             return "Login successful"
 
         return None

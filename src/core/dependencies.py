@@ -8,7 +8,8 @@ from src.db.db_conn import SessionLocal
 from src.core.security import decode_token
 from src.db.db_models import User
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/get_token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/get_token")
+
 
 def get_db():
     db = SessionLocal()
@@ -17,7 +18,10 @@ def get_db():
     finally:
         db.close()
 
-def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Annotated[Session, Depends(get_db)]):
+
+def get_current_user(
+    token: Annotated[str, Depends(oauth2_scheme)], db: DBSession
+) -> User:
     try:
         payload = decode_token(token, expected_type="access")
     except jwt.InvalidTokenError:
@@ -36,4 +40,6 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Annotate
         )
     return user
 
+
 CurrentUser = Annotated[User, Depends(get_current_user)]
+DBSession = Annotated[Session, Depends(get_db)]
