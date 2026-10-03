@@ -13,4 +13,6 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     username: Mapped[str] = mapped_column(String(255), nullable=False)
     refresh_token_hash: Mapped[str | None] = mapped_column(String(255))
-    refresh_token_expire_date: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True))
+    refresh_token_expire_date: Mapped[datetime.datetime | None] = mapped_column(
+        DateTime(timezone=True)
+    )

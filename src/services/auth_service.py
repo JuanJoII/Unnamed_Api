@@ -12,10 +12,13 @@ from src.core.security import hash_password, verify_password, dummy_hash
 from src.core.config import settings
 from src.services.token_service import TokenService
 
+
 def get_token_service(db: DBSession, settings: settings) -> TokenService:
     return TokenService(db=db, settings=settings)
 
+
 TokenServiceDep = Annotated[TokenService, Depends(get_token_service)]
+
 
 class AuthService:
     def __init__(self, db: DBSession, tokens: TokenServiceDep):
@@ -25,9 +28,13 @@ class AuthService:
     def _issue_tokens(self, user: User) -> TokenResponse:
         access_token = self._tokens.generate_access_token(user=user)
         refresh_token = self._tokens.generate_and_save_refresh_token(user=user)
-        return TokenResponse(user_id=user.id, access_token=access_token, refresh_token=refresh_token)
+        return TokenResponse(
+            user_id=user.id, access_token=access_token, refresh_token=refresh_token
+        )
 
-    def login(self, form: Annotated[OAuth2PasswordRequestForm, Depends()]) -> TokenResponse | None:
+    def login(
+        self, form: Annotated[OAuth2PasswordRequestForm, Depends()]
+    ) -> TokenResponse | None:
         user = self._db.scalar(select(User).where(User.email == form.username))
 
         hashed_password = user.password_hash if user else dummy_hash
@@ -56,4 +63,3 @@ class AuthService:
 
     def logout(self, user: User):
         self._tokens.revoke_refresh_token(user)
-

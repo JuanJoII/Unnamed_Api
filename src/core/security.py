@@ -1,4 +1,3 @@
-from datetime import datetime, timedelta, timezone
 import jwt
 from pwdlib import PasswordHash
 from src.core.config import settings
@@ -16,14 +15,17 @@ def verify_password(raw_password: str, hashed_password: str) -> bool:
 
 
 def create_token(payload: dict) -> str:
-    return jwt.encode(payload, settings.jwt_secret_key.get_secret_value(), algorithm=settings.algorithm.get_secret_value())
+    return jwt.encode(
+        payload,
+        settings.jwt_secret_key.get_secret_value(),
+        algorithm=settings.algorithm.get_secret_value(),
+    )
 
 
 def decode_token(
     token: str,
     expected_type: str,
 ) -> dict:
-
     payload = jwt.decode(
         token,
         settings.jwt_secret_key.get_secret_value(),

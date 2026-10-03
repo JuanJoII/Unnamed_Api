@@ -20,6 +20,7 @@ def get_db():
     finally:
         db.close()
 
+
 DBSession = Annotated[Session, Depends(get_db)]
 
 
