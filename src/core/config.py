@@ -5,8 +5,8 @@ from pydantic import SecretStr
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
-    postgres_user: str
-    postgres_password: str
+    postgres_user: SecretStr
+    postgres_password: SecretStr
     postgres_db: str
     jwt_secret_key: SecretStr
     algorithm: SecretStr

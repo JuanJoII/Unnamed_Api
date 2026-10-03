@@ -1,42 +1,59 @@
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from typing import Annotated
-import jwt
-import uuid
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
 from src.db.db_models import User
-from src.schemas.tokens import Token
-from src.services.token_service import issue_tokens
+from src.schemas.tokens import TokenResponse
+from src.schemas.user import UserCreate
 from src.core.dependencies import DBSession
-from src.core.security import decode_token, verify_password, dummy_hash
-from src.schemas.tokens import RefreshTokenRequest
+from src.core.security import hash_password, verify_password, dummy_hash
+from src.core.config import settings
+from src.services.token_service import TokenService
+
+def get_token_service(db: DBSession, settings: settings) -> TokenService:
+    return TokenService(db=db, settings=settings)
+
+TokenServiceDep = Annotated[TokenService, Depends(get_token_service)]
 
 class AuthService:
-    def __init__(self, db: DBSession):
-        self.db = db
+    def __init__(self, db: DBSession, tokens: TokenServiceDep):
+        self._db = db
+        self._tokens = tokens
 
-    def get_token(self, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> Token | None:
-        user = self.db.scalar(select(User).where(User.email == form_data.username))
-        hash = (
-            user.password_hash if user else dummy_hash
-        )  # Use a dummy hash to prevent timing attacks
-        password_valid = verify_password(form_data.password, hash)
-        if not user or not password_valid:
+    def _issue_tokens(self, user: User) -> TokenResponse:
+        access_token = self._tokens.generate_access_token(user=user)
+        refresh_token = self._tokens.generate_and_save_refresh_token(user=user)
+        return TokenResponse(user_id=user.id, access_token=access_token, refresh_token=refresh_token)
+
+    def login(self, form: Annotated[OAuth2PasswordRequestForm, Depends()]) -> TokenResponse | None:
+        user = self._db.scalar(select(User).where(User.email == form.username))
+
+        hashed_password = user.password_hash if user else dummy_hash
+        password_valid = verify_password(form.password, hashed_password)
+
+        if user is None or not password_valid:
             return None
 
-        credentials = issue_tokens(user.id)
-        user.refresh_token = credentials.refresh_token
-        self.db.commit()
+        return self._issue_tokens(user)
 
-        return credentials
-
-    def get_refresh_token(self, body: RefreshTokenRequest) -> Token | None:
+    def create_user(self, api_user: UserCreate) -> User | None:
+        hashed_password = hash_password(api_user.password)
+        db_user = User(
+            email=api_user.email,
+            password_hash=hashed_password,
+            username=api_user.username,
+        )
+        self._db.add(db_user)
         try:
-            payload = decode_token(body.refresh_token, expected_type="refresh")
-        except jwt.InvalidTokenError:
+            self._db.commit()
+        except IntegrityError:
+            self._db.rollback()
             return None
-        user = self.db.get(User, uuid.UUID(payload.get("sub")))
-        if not user:
-            return None
-        return issue_tokens(user.id)
+        self._db.refresh(db_user)
+        return db_user
+
+    def logout(self, user: User):
+        self._tokens.revoke_refresh_token(user)
+

@@ -36,7 +36,7 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-db_url = f"postgresql://{settings.postgres_user}:{settings.postgres_password}@127.0.0.1:5432/{settings.postgres_db}"
+db_url = f"postgresql://{settings.postgres_user.get_secret_value()}:{settings.postgres_password.get_secret_value()}@127.0.0.1:5432/{settings.postgres_db}"
 if not db_url:
     raise ValueError("Database URL is not set. Please check your .env file.")
 config.set_main_option("sqlalchemy.url", db_url)
